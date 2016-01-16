@@ -14,7 +14,7 @@ namespace Blondin.LightCollections
         private readonly int _firstIndexUsingFixedArraySize = NoLohInfoProvider<TValue>.FirstIndexUsingFixedArraySize;
         private readonly NoLohInfoProvider<TValue>.GetChunkAndIndexInChunkDelegate _getChunkAndIndexInChunkProvider = NoLohInfoProvider<TValue>._smallIndexChunkAndIndexProvider;
         private readonly int _arrayIndexOfFirstIndexUsingFixedArraySize = NoLohInfoProvider<TValue>.ProgressiveArraySize.Count;
-        private readonly int _maxArrayElementCount = NoLohInfoProvider<TValue>.MaxArrayElementCount;
+        internal readonly int _maxChunkElementCount = NoLohInfoProvider<TValue>.MaxChunkElementCount;
         private readonly IReadOnlyList<NoLohChunkData> _progressiceArraySize = NoLohInfoProvider<TValue>.ProgressiveArraySize;
 
         internal TValue[][] Values = new TValue[16][];
@@ -24,12 +24,32 @@ namespace Blondin.LightCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void EnsureSize(int newSize)
         {
+            if (newSize <= Size) return;
+
+            if (newSize < _maxChunkElementCount)
+            {
+                var newChunk = new TValue[newSize];
+                if (Values[0] != null) Array.Copy(Values[0], newChunk, Values[0].Length);
+                Values[0] = newChunk;
+                Size = newSize;
+                VirtualArrayCount = 1;
+            }
+
+            // All chunks have a fixed length of _maxArrayElementCount
+
+            // Make sure that the first chunk has a length of _maxArrayElementCount
+            if (Size < _maxChunkElementCount)
+            {
+                var newChunk = new TValue[_maxChunkElementCount];
+                if (Values[0] != null) Array.Copy(Values[0], newChunk, Values[0].Length);
+                Values[0] = newChunk;
+                Size = _maxChunkElementCount;
+            }
+
+            // Add all chunks
             while (newSize > Size)
             {
-                var chunkSize = VirtualArrayCount < _progressiceArraySize.Count ?
-                    _progressiceArraySize[VirtualArrayCount].Size :
-                    _maxArrayElementCount;
-                var chunk = new TValue[chunkSize];
+                var chunk = new TValue[_maxChunkElementCount];
 
                 if (Values.Length == VirtualArrayCount)
                 {
@@ -40,7 +60,7 @@ namespace Blondin.LightCollections
 
                 VirtualArrayCount++;
                 Values[VirtualArrayCount - 1] = chunk;
-                Size += chunkSize;
+                Size += _maxChunkElementCount;
             }
         }
 
@@ -66,7 +86,7 @@ namespace Blondin.LightCollections
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void GetChunkAndIndexInChunk(int index, ref int chunk, ref int indexInChunk)
+        internal void GetChunkAndIndexInChunkz(int index, ref int chunk, ref int indexInChunk)
         {
             if (index < _firstIndexUsingFixedArraySize)
             {
@@ -75,8 +95,8 @@ namespace Blondin.LightCollections
             else
             {
                 index -= _firstIndexUsingFixedArraySize;
-                chunk = _arrayIndexOfFirstIndexUsingFixedArraySize + index / _maxArrayElementCount;
-                indexInChunk = index % _maxArrayElementCount;
+                chunk = _arrayIndexOfFirstIndexUsingFixedArraySize + index / _maxChunkElementCount;
+                indexInChunk = index % _maxChunkElementCount;
             }
         }
     }

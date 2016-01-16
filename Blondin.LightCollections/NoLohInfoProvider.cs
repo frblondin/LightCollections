@@ -36,7 +36,7 @@ namespace Blondin.LightCollections
         internal delegate void GetChunkAndIndexInChunkDelegate(int index, ref int chunk, ref int indexInChunk);
 
         public static int ElementSizeInBytes { get; private set; }
-        public static int MaxArrayElementCount { get; private set; }
+        public static int MaxChunkElementCount { get; private set; }
         public static IReadOnlyList<NoLohChunkData> ProgressiveArraySize { get; private set; }
         internal static GetChunkAndIndexInChunkDelegate _smallIndexChunkAndIndexProvider;
         public static int FirstIndexUsingFixedArraySize { get; private set; }
@@ -44,7 +44,7 @@ namespace Blondin.LightCollections
         static NoLohInfoProvider()
         {
             ElementSizeInBytes = NoLohInfoProvider.GetMemoryFootprint(typeof(T));
-            MaxArrayElementCount = NoLohInfoProvider.LohStartSize / ElementSizeInBytes - 1;
+            MaxChunkElementCount = NoLohInfoProvider.LohStartSize / ElementSizeInBytes - 1;
             ComputeArraysAndFirstIndexUsingFixedSize();
             CompileSmallIndexChunkAndIndexProvider();
         }
@@ -54,7 +54,7 @@ namespace Blondin.LightCollections
             var arrays = new List<NoLohChunkData>();
             int size = 16;
             int index = 0;
-            while (size < MaxArrayElementCount)
+            while (size < MaxChunkElementCount)
             {
                 arrays.Add(new NoLohChunkData(index, size));
                 index += size;
