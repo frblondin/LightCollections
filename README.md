@@ -1,6 +1,3 @@
-| README.md |
-|:---|
-
 # What is LightCollections used for?
 
 The .Net Framework provides powerful generic collections (List<T>, Dictionary<TKey, TValue>) but their memory management can become really bad when dealing with high volumes of data.
