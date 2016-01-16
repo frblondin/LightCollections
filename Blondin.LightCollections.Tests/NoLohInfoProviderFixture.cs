@@ -35,7 +35,7 @@ namespace Blondin.LightCollections.Tests
         [Fact]
         public void MaxArrayElementCount()
         {
-            Assert.Equal(NoLohInfoProvider.LohMinSize / NoLohInfoProvider<FakeStructure>.ElementSizeInBytes - 1, NoLohInfoProvider<FakeStructure>.MaxArrayElementCount);
+            Assert.Equal(NoLohInfoProvider.LohStartSize / NoLohInfoProvider<FakeStructure>.ElementSizeInBytes - 1, NoLohInfoProvider<FakeStructure>.MaxArrayElementCount);
         }
 
         [Fact]

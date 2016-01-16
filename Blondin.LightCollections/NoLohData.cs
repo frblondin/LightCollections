@@ -9,6 +9,14 @@ namespace Blondin.LightCollections
 {
     internal class NoLohData<TValue>
     {
+        // Turns out that copying information from NoLohInfoProvider<TValue> is faster than
+        // accessing the members of NoLohInfoProvider<TValue> in method calls
+        private readonly int _firstIndexUsingFixedArraySize = NoLohInfoProvider<TValue>.FirstIndexUsingFixedArraySize;
+        private readonly NoLohInfoProvider<TValue>.GetChunkAndIndexInChunkDelegate _getChunkAndIndexInChunkProvider = NoLohInfoProvider<TValue>._smallIndexChunkAndIndexProvider;
+        private readonly int _arrayIndexOfFirstIndexUsingFixedArraySize = NoLohInfoProvider<TValue>.ProgressiveArraySize.Count;
+        private readonly int _maxArrayElementCount = NoLohInfoProvider<TValue>.MaxArrayElementCount;
+        private readonly IReadOnlyList<NoLohChunkData> _progressiceArraySize = NoLohInfoProvider<TValue>.ProgressiveArraySize;
+
         internal readonly List<TValue[]> Values = new List<TValue[]>();
         internal int Size;
 
@@ -17,9 +25,9 @@ namespace Blondin.LightCollections
         {
             while (newSize > Size)
             {
-                var chunkSize = Values.Count < NoLohInfoProvider<TValue>.ProgressiveArraySize.Count ?
-                    NoLohInfoProvider<TValue>.ProgressiveArraySize[Values.Count].Size :
-                    NoLohInfoProvider<TValue>.MaxArrayElementCount;
+                var chunkSize = Values.Count < _progressiceArraySize.Count ?
+                    _progressiceArraySize[Values.Count].Size :
+                    _maxArrayElementCount;
                 var chunk = new TValue[chunkSize];
                 Values.Add(chunk);
                 Size += chunkSize;
@@ -46,19 +54,17 @@ namespace Blondin.LightCollections
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal ChunkAndIndex GetChunkAndIndexInChunk(int index)
+        internal void GetChunkAndIndexInChunk(int index, ref int chunk, ref int indexInChunk)
         {
-            if (index < NoLohInfoProvider<TValue>.FirstIndexUsingFixedArraySize)
+            if (index < _firstIndexUsingFixedArraySize)
             {
-                return NoLohInfoProvider<TValue>._smallIndexChunkAndIndexProvider(index);
+                _getChunkAndIndexInChunkProvider(index, ref chunk, ref indexInChunk);
             }
             else
             {
-                index -= NoLohInfoProvider<TValue>.FirstIndexUsingFixedArraySize;
-                int arrayIndexOfFirstIndexUsingFixedArraySize = NoLohInfoProvider<TValue>.ProgressiveArraySize.Count;
-                return new ChunkAndIndex(
-                    arrayIndexOfFirstIndexUsingFixedArraySize + index / NoLohInfoProvider<TValue>.MaxArrayElementCount,
-                    index % NoLohInfoProvider<TValue>.MaxArrayElementCount);
+                index -= _firstIndexUsingFixedArraySize;
+                chunk = _arrayIndexOfFirstIndexUsingFixedArraySize + index / _maxArrayElementCount;
+                indexInChunk = index % _maxArrayElementCount;
             }
         }
     }

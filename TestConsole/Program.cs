@@ -12,23 +12,21 @@ namespace ConsoleApplication1
     {
         static void Main(string[] args)
         {
-            int count = 1000000;
-            //BenchImpl(new Dictionary<int, string>(), count);
-            BenchImpl(new LightDictionary<int, string>(), count);
-            //BenchImpl(new Dictionary<int, string>(), count);
+            int count = 10000000;
+            BenchImpl(new Blondin.LightCollections.Dictionary<string, int>(), count);
+            BenchImpl(new LightDictionary<string, int>(), count);
+            //BenchImpl(new Blondin.LightCollections.Dictionary<int, string>(), count);
             //BenchImpl(new LightDictionary<int, string>(), count);
         }
 
-        private static void BenchImpl(IDictionary<int, string> dictionary, int count)
+        private static void BenchImpl(IDictionary<string, int> dictionary, int count)
         {
-            dictionary[0] = "0"; // Force JIT
-
             var watch = Stopwatch.StartNew();
             for (int i = 0; i < count; i++)
-                dictionary[i] = i.ToString();
-            string ignored;
+                dictionary[i.ToString()] = i;
+            int ignored;
             for (int i = 0; i < count; i++)
-                ignored = dictionary[i];
+                ignored = dictionary[i.ToString()];
             Console.WriteLine(string.Format("Time to process with dictionary of type '{0}': {1}.",
                 dictionary.GetType(),
                 watch.Elapsed));

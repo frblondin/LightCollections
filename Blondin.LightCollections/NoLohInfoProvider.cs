@@ -10,11 +10,11 @@ namespace Blondin.LightCollections
 {
     public static class NoLohInfoProvider
     {
-        public const int LohMinSize = 85000;
+        public const int LohStartSize = 85000;
 
         public static int GetMemoryFootprint(Type type)
         {
-            if (type.IsClass || type.IsPrimitive) return 4;
+            if (type.IsClass || type.IsPrimitive) return 1;
             return (from field in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
                     select GetMemoryFootprint(field.FieldType)).Sum();
         }
@@ -31,34 +31,20 @@ namespace Blondin.LightCollections
         }
     }
 
-    internal struct ChunkAndIndex
-    {
-        internal static readonly ConstructorInfo _constructor = typeof(ChunkAndIndex).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, new[] { typeof(int), typeof(int) }, null);
-        internal static readonly ChunkAndIndex Empty = new ChunkAndIndex(-1, -1);
-
-        internal int Chunk;
-        internal int IndexInChunk;
-        internal bool IsEmpty { get { return Chunk == -1 && IndexInChunk == -1; } }
-
-        internal ChunkAndIndex(int chunk, int indexInChunk)
-        {
-            this.Chunk = chunk;
-            this.IndexInChunk = indexInChunk;
-        }
-    }
-
     public static class NoLohInfoProvider<T>
     {
+        internal delegate void GetChunkAndIndexInChunkDelegate(int index, ref int chunk, ref int indexInChunk);
+
         public static int ElementSizeInBytes { get; private set; }
         public static int MaxArrayElementCount { get; private set; }
         public static IReadOnlyList<NoLohChunkData> ProgressiveArraySize { get; private set; }
-        internal static Func<int, ChunkAndIndex> _smallIndexChunkAndIndexProvider;
+        internal static GetChunkAndIndexInChunkDelegate _smallIndexChunkAndIndexProvider;
         public static int FirstIndexUsingFixedArraySize { get; private set; }
 
         static NoLohInfoProvider()
         {
             ElementSizeInBytes = NoLohInfoProvider.GetMemoryFootprint(typeof(T));
-            MaxArrayElementCount = NoLohInfoProvider.LohMinSize / ElementSizeInBytes - 1;
+            MaxArrayElementCount = NoLohInfoProvider.LohStartSize / ElementSizeInBytes - 1;
             ComputeArraysAndFirstIndexUsingFixedSize();
             CompileSmallIndexChunkAndIndexProvider();
         }
@@ -81,20 +67,25 @@ namespace Blondin.LightCollections
         private static void CompileSmallIndexChunkAndIndexProvider()
         {
             var lambdaIndexArg = Expression.Parameter(typeof(int));
+            var lambdaChunkArg = Expression.Parameter(typeof(int).MakeByRefType());
+            var lambdaIndexInChunkArg = Expression.Parameter(typeof(int).MakeByRefType());
             var expression = default(ConditionalExpression);
             int i = ProgressiveArraySize.Count - 1;
             foreach (var data in ProgressiveArraySize.Reverse())
             {
                 expression = Expression.Condition(
                     Expression.LessThan(lambdaIndexArg, Expression.Constant(data.StartIndex + data.Size)),
-                    Expression.New(ChunkAndIndex._constructor,
-                        Expression.Constant(i--),
-                        Expression.Subtract(lambdaIndexArg, Expression.Constant(data.StartIndex))),
-                    (Expression)expression ?? Expression.Default(typeof(ChunkAndIndex)));
+                    Expression.Block(typeof(void),
+                        Expression.Assign(lambdaChunkArg, Expression.Constant(i--)),
+                        Expression.Assign(lambdaIndexInChunkArg, Expression.Subtract(lambdaIndexArg, Expression.Constant(data.StartIndex)))),
+                    (Expression)expression ?? Expression.Empty());
             }
-            _smallIndexChunkAndIndexProvider = Expression.Lambda<Func<int, ChunkAndIndex>>(
+            var delegateType = Expression.GetDelegateType(
+                typeof(int), typeof(int).MakeByRefType(), typeof(int).MakeByRefType(),
+                typeof(void));
+            _smallIndexChunkAndIndexProvider = (GetChunkAndIndexInChunkDelegate)Expression.Lambda(typeof(GetChunkAndIndexInChunkDelegate),
                 expression,
-                lambdaIndexArg).Compile();
+                lambdaIndexArg, lambdaChunkArg, lambdaIndexInChunkArg).Compile();
         }
     }
 }

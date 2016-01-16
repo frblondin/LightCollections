@@ -16,6 +16,15 @@ namespace Blondin.LightCollections
     [System.Runtime.InteropServices.ComVisible(false)]
     public class LightDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDictionary, IReadOnlyDictionary<TKey, TValue>, ISerializable, IDeserializationCallback
     {
+        private struct ChunkAndIndex
+        {
+            public static readonly ChunkAndIndex Empty = new ChunkAndIndex { chunk = -1, indexInChunk = -1 };
+
+            public int chunk;
+            public int indexInChunk;
+
+            public bool IsEmpty { get { return chunk == -1; } }
+        }
         private struct Entry
         {
             public int hashCode;    // Lower 31 bits of hash code, -1 if unused
@@ -160,8 +169,9 @@ namespace Blondin.LightCollections
         {
             get
             {
-                var i = FindEntry(key);
-                if (!i.IsEmpty) return _entries.Values[i.Chunk][i.IndexInChunk].value;
+                int chunk = -1, indexInChunk = -1;
+                FindEntry(key, ref chunk, ref indexInChunk);
+                if (chunk != -1) return _entries.Values[chunk][indexInChunk].value;
                 ThrowHelper.ThrowKeyNotFoundException();
                 return default(TValue);
             }
@@ -183,8 +193,9 @@ namespace Blondin.LightCollections
 
         bool ICollection<KeyValuePair<TKey, TValue>>.Contains(KeyValuePair<TKey, TValue> keyValuePair)
         {
-            var i = FindEntry(keyValuePair.Key);
-            if (i.Chunk >= 0 && EqualityComparer<TValue>.Default.Equals(_entries.Values[i.Chunk][i.IndexInChunk].value, keyValuePair.Value))
+            int chunk = -1, indexInChunk = -1;
+            FindEntry(keyValuePair.Key, ref chunk, ref indexInChunk);
+            if (chunk >= 0 && EqualityComparer<TValue>.Default.Equals(_entries.Values[chunk][indexInChunk].value, keyValuePair.Value))
             {
                 return true;
             }
@@ -193,8 +204,9 @@ namespace Blondin.LightCollections
 
         bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> keyValuePair)
         {
-            var i = FindEntry(keyValuePair.Key);
-            if (i.Chunk >= 0 && EqualityComparer<TValue>.Default.Equals(_entries.Values[i.Chunk][i.IndexInChunk].value, keyValuePair.Value))
+            int chunk = -1, indexInChunk = -1;
+            FindEntry(keyValuePair.Key, ref chunk, ref indexInChunk);
+            if (chunk >= 0 && EqualityComparer<TValue>.Default.Equals(_entries.Values[chunk][indexInChunk].value, keyValuePair.Value))
             {
                 Remove(keyValuePair.Key);
                 return true;
@@ -217,7 +229,9 @@ namespace Blondin.LightCollections
 
         public bool ContainsKey(TKey key)
         {
-            return FindEntry(key).Chunk >= 0;
+            int chunk = -1, indexInChunk = -1;
+            FindEntry(key, ref chunk, ref indexInChunk);
+            return chunk >= 0;
         }
 
         public bool ContainsValue(TValue value)
@@ -306,7 +320,7 @@ namespace Blondin.LightCollections
             }
         }
 
-        private ChunkAndIndex FindEntry(TKey key)
+        private void FindEntry(TKey key, ref int chunk, ref int indexInChunk)
         {
             if (key == null)
             {
@@ -316,16 +330,22 @@ namespace Blondin.LightCollections
             if (_buckets != null)
             {
                 int hashCode = comparer.GetHashCode(key) & 0x7FFFFFFF;
-                var bucket = _buckets.GetChunkAndIndexInChunk(hashCode % _size);
-                for (var pos = _buckets.Values[bucket.Chunk][bucket.IndexInChunk];
+                int bucketChunk = -1, bucketIndexInChunk = -1;
+                _buckets.GetChunkAndIndexInChunk(hashCode % _size, ref bucketChunk, ref bucketIndexInChunk);
+                for (var pos = _buckets.Values[bucketChunk][bucketIndexInChunk];
                     !pos.IsEmpty;
-                    pos = _entries.Values[pos.Chunk][pos.IndexInChunk].next)
+                    pos = _entries.Values[pos.chunk][pos.indexInChunk].next)
                 {
-                    if (_entries.Values[pos.Chunk][pos.IndexInChunk].hashCode == hashCode &&
-                        comparer.Equals(_entries.Values[pos.Chunk][pos.IndexInChunk].key, key)) return pos;
+                    if (_entries.Values[pos.chunk][pos.indexInChunk].hashCode == hashCode &&
+                        comparer.Equals(_entries.Values[pos.chunk][pos.indexInChunk].key, key))
+                    {
+                        chunk = pos.chunk;
+                        indexInChunk = pos.indexInChunk;
+                        return;
+                    }
                 }
             }
-            return ChunkAndIndex.Empty;
+            chunk = -1;
         }
 
         private void Initialize(int capacity)
@@ -341,18 +361,7 @@ namespace Blondin.LightCollections
 
             freeList = ChunkAndIndex.Empty;
         }
-        private void Debug()
-        {
-            int hashCode = comparer.GetHashCode(default(TKey)) & 0x7FFFFFFF;
-            var targetBucket = _buckets.GetChunkAndIndexInChunk(hashCode % _size);
-            var pos = _buckets.Values[targetBucket.Chunk][targetBucket.IndexInChunk];
-            if (!pos.IsEmpty && _entries.Values[pos.Chunk][pos.IndexInChunk].hashCode == 0 &&
-                _entries.Values[pos.Chunk][pos.IndexInChunk].key.Equals(default(TKey)) &&
-                _entries.Values[pos.Chunk][pos.IndexInChunk].value == null)
-            {
-                throw new Exception("hjhlkj");
-            }
-        }
+
         private void Insert(TKey key, TValue value, bool add)
         {
 
@@ -363,23 +372,24 @@ namespace Blondin.LightCollections
 
             if (_buckets == null) Initialize(0);
             int hashCode = comparer.GetHashCode(key) & 0x7FFFFFFF;
-            var targetBucket = _buckets.GetChunkAndIndexInChunk(hashCode % _size);
+            int targetBucketChunk = -1, targetBucketIndexInChunk = -1;
+            _buckets.GetChunkAndIndexInChunk(hashCode % _size, ref targetBucketChunk, ref targetBucketIndexInChunk);
 
 #if FEATURE_RANDOMIZED_STRING_HASHING
             int collisionCount = 0;
 #endif
-            for (var pos = _buckets.Values[targetBucket.Chunk][targetBucket.IndexInChunk];
+            for (var pos = _buckets.Values[targetBucketChunk][targetBucketIndexInChunk];
                 !pos.IsEmpty;
-                pos = _entries.Values[pos.Chunk][pos.IndexInChunk].next)
+                pos = _entries.Values[pos.chunk][pos.indexInChunk].next)
             {
-                if (_entries.Values[pos.Chunk][pos.IndexInChunk].hashCode == hashCode &&
-                    comparer.Equals(_entries.Values[pos.Chunk][pos.IndexInChunk].key, key))
+                if (_entries.Values[pos.chunk][pos.indexInChunk].hashCode == hashCode &&
+                    comparer.Equals(_entries.Values[pos.chunk][pos.indexInChunk].key, key))
                 {
                     if (add)
                     {
                         ThrowHelper.ThrowArgumentException(ExceptionResource.Argument_AddingDuplicate);
                     }
-                    _entries.Values[pos.Chunk][pos.IndexInChunk].value = value;
+                    _entries.Values[pos.chunk][pos.indexInChunk].value = value;
                     version++;
                     return;
                 }
@@ -388,11 +398,12 @@ namespace Blondin.LightCollections
                 collisionCount++;
 #endif
             }
+            int indexChunk = -1, indexIndexInChunk = -1;
             ChunkAndIndex index;
             if (freeCount > 0)
             {
                 index = freeList;
-                freeList = _entries.Values[index.Chunk][index.IndexInChunk].next;
+                freeList = _entries.Values[index.chunk][index.indexInChunk].next;
                 freeCount--;
             }
             else
@@ -400,17 +411,17 @@ namespace Blondin.LightCollections
                 if (count == _size)
                 {
                     Resize();
-                    targetBucket = _buckets.GetChunkAndIndexInChunk(hashCode % _size);
+                    _buckets.GetChunkAndIndexInChunk(hashCode % _size, ref targetBucketChunk, ref targetBucketIndexInChunk);
                 }
-                index = _entries.GetChunkAndIndexInChunk(count);
+                _entries.GetChunkAndIndexInChunk(count, ref indexChunk, ref indexIndexInChunk);
                 count++;
             }
 
-            _entries.Values[index.Chunk][index.IndexInChunk].hashCode = hashCode;
-            _entries.Values[index.Chunk][index.IndexInChunk].next = _buckets.Values[targetBucket.Chunk][targetBucket.IndexInChunk];
-            _entries.Values[index.Chunk][index.IndexInChunk].key = key;
-            _entries.Values[index.Chunk][index.IndexInChunk].value = value;
-            _buckets.Values[targetBucket.Chunk][targetBucket.IndexInChunk] = index;
+            _entries.Values[indexChunk][indexIndexInChunk].hashCode = hashCode;
+            _entries.Values[indexChunk][indexIndexInChunk].next = _buckets.Values[targetBucketChunk][targetBucketIndexInChunk];
+            _entries.Values[indexChunk][indexIndexInChunk].key = key;
+            _entries.Values[indexChunk][indexIndexInChunk].value = value;
+            _buckets.Values[targetBucketChunk][targetBucketIndexInChunk] = new ChunkAndIndex { chunk = indexChunk, indexInChunk = indexIndexInChunk };
             version++;
 
 #if FEATURE_RANDOMIZED_STRING_HASHING
@@ -435,7 +446,6 @@ namespace Blondin.LightCollections
 #endif // FEATURE_CORECLR
  
 #endif
-            Debug();
         }
 
         public virtual void OnDeserialization(Object sender)
@@ -515,14 +525,14 @@ namespace Blondin.LightCollections
                 {
                     if (_entries.Values[i][j].hashCode >= 0)
                     {
-                        var bucket = _buckets.GetChunkAndIndexInChunk(_entries.Values[i][j].hashCode % newSize);
-                        _entries.Values[i][j].next = _buckets.Values[bucket.Chunk][bucket.IndexInChunk];
-                        _buckets.Values[bucket.Chunk][bucket.IndexInChunk] = new ChunkAndIndex(i, j);
+                        int bucketChunk = -1, bucketIndexInChunk = -1;
+                        _buckets.GetChunkAndIndexInChunk(_entries.Values[i][j].hashCode % newSize, ref bucketChunk, ref bucketIndexInChunk);
+                        _entries.Values[i][j].next = _buckets.Values[bucketChunk][bucketIndexInChunk];
+                        _buckets.Values[bucketChunk][bucketIndexInChunk] = new ChunkAndIndex { chunk = i, indexInChunk = j };
                         temp++;
                     }
                 }
             _size = newSize;
-            Debug();
         }
 
         public bool Remove(TKey key)
@@ -535,27 +545,28 @@ namespace Blondin.LightCollections
             if (_buckets != null)
             {
                 int hashCode = comparer.GetHashCode(key) & 0x7FFFFFFF;
-                var bucket = _buckets.GetChunkAndIndexInChunk(hashCode % _size);
+                int bucketChunk = -1, bucketIndexInChunk = -1;
+                _buckets.GetChunkAndIndexInChunk(hashCode % _size, ref bucketChunk, ref bucketIndexInChunk);
                 ChunkAndIndex last = ChunkAndIndex.Empty;
-                for (var pos = _buckets.Values[bucket.Chunk][bucket.IndexInChunk];
+                for (var pos = _buckets.Values[bucketChunk][bucketIndexInChunk];
                     !pos.IsEmpty;
-                    last = pos, pos = _entries.Values[pos.Chunk][pos.IndexInChunk].next)
+                    last = pos, pos = _entries.Values[pos.chunk][pos.indexInChunk].next)
                 {
-                    if (_entries.Values[pos.Chunk][pos.IndexInChunk].hashCode == hashCode &&
-                        comparer.Equals(_entries.Values[pos.Chunk][pos.IndexInChunk].key, key))
+                    if (_entries.Values[pos.chunk][pos.indexInChunk].hashCode == hashCode &&
+                        comparer.Equals(_entries.Values[pos.chunk][pos.indexInChunk].key, key))
                     {
                         if (last.IsEmpty)
                         {
-                            _buckets.Values[bucket.Chunk][bucket.IndexInChunk] = _entries.Values[pos.Chunk][pos.IndexInChunk].next;
+                            _buckets.Values[bucketChunk][bucketIndexInChunk] = _entries.Values[pos.chunk][pos.indexInChunk].next;
                         }
                         else
                         {
-                            _entries.Values[last.Chunk][last.IndexInChunk].next = _entries.Values[pos.Chunk][pos.IndexInChunk].next;
+                            _entries.Values[last.chunk][last.indexInChunk].next = _entries.Values[pos.chunk][pos.indexInChunk].next;
                         }
-                        _entries.Values[pos.Chunk][pos.IndexInChunk].hashCode = -1;
-                        _entries.Values[pos.Chunk][pos.IndexInChunk].next = freeList;
-                        _entries.Values[pos.Chunk][pos.IndexInChunk].key = default(TKey);
-                        _entries.Values[pos.Chunk][pos.IndexInChunk].value = default(TValue);
+                        _entries.Values[pos.chunk][pos.indexInChunk].hashCode = -1;
+                        _entries.Values[pos.chunk][pos.indexInChunk].next = freeList;
+                        _entries.Values[pos.chunk][pos.indexInChunk].key = default(TKey);
+                        _entries.Values[pos.chunk][pos.indexInChunk].value = default(TValue);
                         freeList = pos;
                         freeCount++;
                         version++;
@@ -568,10 +579,11 @@ namespace Blondin.LightCollections
 
         public bool TryGetValue(TKey key, out TValue value)
         {
-            var i = FindEntry(key);
-            if (i.Chunk >= 0)
+            int chunk = -1, indexInChunk = -1;
+            FindEntry(key, ref chunk, ref indexInChunk);
+            if (chunk >= 0)
             {
-                value = _entries.Values[i.Chunk][i.IndexInChunk].value;
+                value = _entries.Values[chunk][indexInChunk].value;
                 return true;
             }
             value = default(TValue);
@@ -584,10 +596,11 @@ namespace Blondin.LightCollections
         // TryGetValue without the out param
         internal TValue GetValueOrDefault(TKey key)
         {
-            var i = FindEntry(key);
-            if (i.Chunk >= 0)
+            int chunk = -1, indexInChunk = -1;
+            FindEntry(key, ref chunk, ref indexInChunk);
+            if (chunk >= 0)
             {
-                return _entries.Values[i.Chunk][i.IndexInChunk].value;
+                return _entries.Values[chunk][indexInChunk].value;
             }
             return default(TValue);
         }
@@ -722,10 +735,11 @@ namespace Blondin.LightCollections
             {
                 if (IsCompatibleKey(key))
                 {
-                    var i = FindEntry((TKey)key);
-                    if (i.Chunk >= 0)
+                    int chunk = -1, indexInChunk = -1;
+                    FindEntry((TKey)key, ref chunk, ref indexInChunk);
+                    if (chunk >= 0)
                     {
-                        return _entries.Values[i.Chunk][i.IndexInChunk].value;
+                        return _entries.Values[chunk][indexInChunk].value;
                     }
                 }
                 return null;
@@ -849,9 +863,9 @@ namespace Blondin.LightCollections
 
                 while (absoluteIndex < dictionary._size)
                 {
-                    if (dictionary._entries.Values[index.Chunk][index.IndexInChunk].hashCode >= 0)
+                    if (dictionary._entries.Values[index.chunk][index.indexInChunk].hashCode >= 0)
                     {
-                        current = new KeyValuePair<TKey, TValue>(dictionary._entries.Values[index.Chunk][index.IndexInChunk].key, dictionary._entries.Values[index.Chunk][index.IndexInChunk].value);
+                        current = new KeyValuePair<TKey, TValue>(dictionary._entries.Values[index.chunk][index.indexInChunk].key, dictionary._entries.Values[index.chunk][index.indexInChunk].value);
                         IncrementIndex();
                         return true;
                     }
@@ -865,11 +879,11 @@ namespace Blondin.LightCollections
 
             private void IncrementIndex()
             {
-                index.IndexInChunk++;
-                if (index.IndexInChunk >= dictionary._entries.Values[index.Chunk].Length)
+                index.indexInChunk++;
+                if (index.indexInChunk >= dictionary._entries.Values[index.chunk].Length)
                 {
-                    index.Chunk++;
-                    index.IndexInChunk = 0;
+                    index.chunk++;
+                    index.indexInChunk = 0;
                 }
                 absoluteIndex++;
             }
@@ -1145,9 +1159,9 @@ namespace Blondin.LightCollections
 
                     while (absoluteIndex < dictionary._size)
                     {
-                        if (dictionary._entries.Values[index.Chunk][index.IndexInChunk].hashCode >= 0)
+                        if (dictionary._entries.Values[index.chunk][index.indexInChunk].hashCode >= 0)
                         {
-                            currentKey = dictionary._entries.Values[index.Chunk][index.IndexInChunk].key;
+                            currentKey = dictionary._entries.Values[index.chunk][index.indexInChunk].key;
                             IncrementIndex();
                             return true;
                         }
@@ -1161,11 +1175,11 @@ namespace Blondin.LightCollections
 
                 private void IncrementIndex()
                 {
-                    index.IndexInChunk++;
-                    if (index.IndexInChunk >= dictionary._entries.Values[index.Chunk].Length)
+                    index.indexInChunk++;
+                    if (index.indexInChunk >= dictionary._entries.Values[index.chunk].Length)
                     {
-                        index.Chunk++;
-                        index.IndexInChunk = 0;
+                        index.chunk++;
+                        index.indexInChunk = 0;
                     }
                     absoluteIndex++;
                 }
@@ -1392,9 +1406,9 @@ namespace Blondin.LightCollections
 
                     while (absoluteIndex < dictionary._size)
                     {
-                        if (dictionary._entries.Values[index.Chunk][index.IndexInChunk].hashCode >= 0)
+                        if (dictionary._entries.Values[index.chunk][index.indexInChunk].hashCode >= 0)
                         {
-                            currentValue = dictionary._entries.Values[index.Chunk][index.IndexInChunk].value;
+                            currentValue = dictionary._entries.Values[index.chunk][index.indexInChunk].value;
                             IncrementIndex();
                             return true;
                         }
@@ -1407,11 +1421,11 @@ namespace Blondin.LightCollections
 
                 private void IncrementIndex()
                 {
-                    index.IndexInChunk++;
-                    if (index.IndexInChunk >= dictionary._entries.Values[index.Chunk].Length)
+                    index.indexInChunk++;
+                    if (index.indexInChunk >= dictionary._entries.Values[index.chunk].Length)
                     {
-                        index.Chunk++;
-                        index.IndexInChunk = 0;
+                        index.chunk++;
+                        index.indexInChunk = 0;
                     }
                     absoluteIndex++;
                 }
