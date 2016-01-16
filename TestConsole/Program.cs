@@ -13,10 +13,10 @@ namespace ConsoleApplication1
         static void Main(string[] args)
         {
             int count = 10000000;
-            BenchImpl(new Blondin.LightCollections.Dictionary<string, int>(), count);
             BenchImpl(new LightDictionary<string, int>(), count);
-            //BenchImpl(new Blondin.LightCollections.Dictionary<int, string>(), count);
+            BenchImpl(new Blondin.LightCollections.Dictionary<string, int>(), count);
             //BenchImpl(new LightDictionary<int, string>(), count);
+            //BenchImpl(new Blondin.LightCollections.Dictionary<int, string>(), count);
         }
 
         private static void BenchImpl(IDictionary<string, int> dictionary, int count)

@@ -17,7 +17,8 @@ namespace Blondin.LightCollections
         private readonly int _maxArrayElementCount = NoLohInfoProvider<TValue>.MaxArrayElementCount;
         private readonly IReadOnlyList<NoLohChunkData> _progressiceArraySize = NoLohInfoProvider<TValue>.ProgressiveArraySize;
 
-        internal readonly List<TValue[]> Values = new List<TValue[]>();
+        internal TValue[][] Values = new TValue[16][];
+        internal int VirtualArrayCount;
         internal int Size;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -25,11 +26,20 @@ namespace Blondin.LightCollections
         {
             while (newSize > Size)
             {
-                var chunkSize = Values.Count < _progressiceArraySize.Count ?
-                    _progressiceArraySize[Values.Count].Size :
+                var chunkSize = VirtualArrayCount < _progressiceArraySize.Count ?
+                    _progressiceArraySize[VirtualArrayCount].Size :
                     _maxArrayElementCount;
                 var chunk = new TValue[chunkSize];
-                Values.Add(chunk);
+
+                if (Values.Length == VirtualArrayCount)
+                {
+                    var newValues = new TValue[Values.Length * 2][];
+                    Array.Copy(Values, newValues, VirtualArrayCount);
+                    Values = newValues;
+                }
+
+                VirtualArrayCount++;
+                Values[VirtualArrayCount - 1] = chunk;
                 Size += chunkSize;
             }
         }
@@ -37,19 +47,21 @@ namespace Blondin.LightCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void SetAllValues(TValue value)
         {
-            foreach (var chunk in Values)
+            for (int i = 0; i < VirtualArrayCount; i++)
             {
-                for (int i = 0; i < chunk.Length; i++)
-                    chunk[i] = value;
+                for (int j = 0; j < Values[i].Length; j++)
+                {
+                    Values[i][j] = value;
+                }
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void ClearAllChunks()
         {
-            foreach (var chunk in Values)
+            for (int i = 0; i < VirtualArrayCount; i++)
             {
-                Array.Clear(chunk, 0, chunk.Length);
+                Array.Clear(Values[i], 0, Values[i].Length);
             }
         }
 
