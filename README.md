@@ -1,8 +1,3 @@
-| Total memory traffic | 257,392 Mbytes || LoH memory usage | 0 :-) |
-| Setting values | 4,566 ms |
-| Getting values | 2,617 ms |
-| Total duration | 7,184 ms |
-
 # What is LightCollections used for?
 
 The .Net Framework provides powerful generic collections (List<T>, Dictionary<TKey, TValue>) but their memory management can become really bad when dealing with high volumes of data.
@@ -27,19 +22,10 @@ The light dictionary only drops arrays when they keep being small. Once they rea
 
 I did some benchmarks to compare the performance between LightDictionary<string, int> and Dictionary. The test consists of setting 10,000,000 values and getting all the values.
 
-LightDictionary:
-| Total memory traffic | 257,392 Mbytes |
-| LoH memory usage | 0 :-) |
-| Setting values | 4,566 ms |
-| Getting values | 2,617 ms |
-| Total duration | 7,184 ms |
-
-Dictionary:
-Total memory traffic: 472,063 Mbytes
-LoH memory usage: 471,481 Mbytes - largest array needs 50 Mbytes contiguous memory
-Setting values: 4,129 ms
-Getting values: 2,298 ms
-Total duration: 6,428 ms
+| Type | Total memory traffic | LoH memory usage | Setting values | Getting values | Total duration |
+|---|---|---|---|---|---|
+|LightDictionary| 257,392 Mbytes | 0 :-) | 4,566 ms | 2,617 ms | 7,184 ms |
+|Dictionary| 472,063 Mbytes | 471,481 Mbytes - largest array needs 50 Mbytes contiguous memory | 4,129 ms | 2,298 ms | 6,428 ms |
 
 This shows that LightDictionary doesn't consume any memory in the Large Object Heap anymore. Furthermore the global memory traffice is twice as small. The drawback is that the LightDictionary is around 11% slower than the standard Dictionary.
 
