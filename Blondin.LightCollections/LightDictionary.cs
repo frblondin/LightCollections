@@ -527,27 +527,33 @@ namespace Blondin.LightCollections
             if (forceNewHashCodes)
             {
                 for (int i = 0; i < _entries.VirtualArrayCount; i++)
-                    for (int j = 0; j < _entries.Values[i].Length; j++)
+                {
+                    var chunkData = _entries.Values[i];
+                    for (int j = 0; j < chunkData.Length; j++)
                     {
-                        if (_entries.Values[i][j].hashCode != -1)
+                        if (chunkData[j].hashCode != -1)
                         {
-                            _entries.Values[i][j].hashCode = (comparer.GetHashCode(_entries.Values[i][j].key) & 0x7FFFFFFF);
+                            chunkData[j].hashCode = (comparer.GetHashCode(chunkData[j].key) & 0x7FFFFFFF);
                         }
                     }
+                }
             }
             int temp = 0;
             for (int i = 0; i < _entries.VirtualArrayCount && temp < count; i++)
-                for (int j = 0; j < _entries.Values[i].Length && temp < count; j++)
+            {
+                var chunkData = _entries.Values[i];
+                for (int j = 0; j < chunkData.Length && temp < count; j++)
                 {
-                    if (_entries.Values[i][j].hashCode >= 0)
+                    if (chunkData[j].hashCode >= 0)
                     {
                         int bucketChunk = -1, bucketIndexInChunk = -1;
-                        int bucket = ExtractChunkAndIndexInChunk(_entries.Values[i][j].hashCode % newSize, _maxBucketChunkElementCount, ref bucketChunk, ref bucketIndexInChunk);
-                        _entries.Values[i][j].next = _buckets.Values[bucketChunk][bucketIndexInChunk];
+                        int bucket = ExtractChunkAndIndexInChunk(chunkData[j].hashCode % newSize, _maxBucketChunkElementCount, ref bucketChunk, ref bucketIndexInChunk);
+                        chunkData[j].next = _buckets.Values[bucketChunk][bucketIndexInChunk];
                         _buckets.Values[bucketChunk][bucketIndexInChunk] = MergeChunkAndIndexInChunk(_maxEntryChunkElementCount, i, j);
                         temp++;
                     }
                 }
+            }
             _size = newSize;
         }
 

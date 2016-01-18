@@ -10,7 +10,7 @@ namespace Blondin.LightCollections
 {
     public static class NoLohInfoProvider
     {
-        public const int LohStartSize = 85000;
+        public const int LohStartSize = 21000;
 
         public static int GetMemoryFootprint(Type type)
         {

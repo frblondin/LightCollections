@@ -21,13 +21,19 @@ namespace ConsoleApplication1
 
         private static void BenchImpl(IDictionary<string, int> dictionary, int count)
         {
+            Console.WriteLine("Start...");
             var watch = Stopwatch.StartNew();
             for (int i = 0; i < count; i++)
                 dictionary[i.ToString()] = i;
+            var sets = watch.Elapsed;
+            Console.WriteLine(string.Format("      Sets: {0}.", sets));
+
             int ignored;
             for (int i = 0; i < count; i++)
                 ignored = dictionary[i.ToString()];
-            Console.WriteLine(string.Format("Time to process with dictionary of type '{0}': {1}.",
+            Console.WriteLine(string.Format("      Gets: {0}.", watch.Elapsed - sets));
+
+            Console.WriteLine(string.Format("Global time to process with dictionary of type '{0}': {1}.",
                 dictionary.GetType(),
                 watch.Elapsed));
         }
