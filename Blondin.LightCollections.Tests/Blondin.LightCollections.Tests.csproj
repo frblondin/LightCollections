@@ -74,6 +74,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="JaggedDictionary.DebugViewFixture.cs" />
+    <Compile Include="JaggedDictionaryFixture.cs" />
     <Compile Include="LightDictionaryFixture.cs" />
     <Compile Include="NoLohInfoProviderFixture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

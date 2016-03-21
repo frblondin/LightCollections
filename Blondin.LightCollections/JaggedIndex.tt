@@ -1,0 +1,147 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Blondin.LightCollections
+{
+	public interface IJaggedIndex<T>
+	{
+		int Depth { get; }
+		T this[int index] { get; }
+		T[] GetValues();
+	}
+
+	public static partial class JaggedIndex
+	{
+		public static IJaggedIndex<T> Create<T>(params T[] keys)
+		{
+			return Create((IList<T>)keys);
+		}
+
+		public static IJaggedIndex<T> Create<T>(IList<T> keys)
+		{
+			switch (keys.Count)
+			{
+<#
+int maxDepth = 9;
+for (int i = 1; i < maxDepth; i++)
+{
+	var genericArguments = string.Join(", ", Enumerable.Range(0, i).Select(_ => "T"));
+	var parameters = string.Join(", ", Enumerable.Range(0, i).Select(_ => "T key" + _));
+#>
+				case <#=i#>: return Create<T>(<#=string.Join(", ", Enumerable.Range(0, i).Select(_ => "keys[" + _ + "]"))#>);
+<#
+}
+#>
+				default: throw new ArgumentOutOfRangeException();
+			}
+		}
+	}
+
+<#
+for (int i = 1; i < maxDepth; i++)
+{
+	var genericArguments = string.Join(", ", Enumerable.Range(0, i).Select(_ => "T"));
+	var parameters = string.Join(", ", Enumerable.Range(0, i).Select(_ => "T key" + _));
+#>
+	public static partial class JaggedIndex
+	{
+		public static JaggedIndex<#=i#><T> Create<T>(<#=parameters#>)
+		{
+			return new JaggedIndex<#=i#><T>(<#=string.Join(", ", Enumerable.Range(0, i).Select(_ => "key" + _))#>);
+		}
+	}
+
+	public struct JaggedIndex<#=i#><T> : IJaggedIndex<T>, IEquatable<JaggedIndex<#=i#><T>>
+	{
+		<#=string.Join(" ", Enumerable.Range(0, i).Select(_ => "public readonly T Key" + _ + ";"))#>
+
+		public int Depth { get { return <#=i#>; } }
+
+		public T this[int index]
+		{
+			get
+			{
+				switch (index)
+				{
+<#
+for (int j = 0; j < i; j++)
+{
+#>
+					case <#=j#>: return this.Key<#=j#>;
+<#
+}
+#>
+					default: throw new ArgumentOutOfRangeException();
+				}
+			}
+		}
+
+		public JaggedIndex<#=i#>(<#=parameters#>)
+		{
+			<#=string.Join(" ", Enumerable.Range(0, i).Select(_ => "this.Key" + _ + " = key" + _ + ";"))#>
+		}
+
+		public T[] GetValues()
+		{
+			return new[] { <#=string.Join(", ", Enumerable.Range(0, i).Select(_ => "this.Key" + _))#> };
+		}
+
+		public override bool Equals(object key)
+		{
+            if (!(key is JaggedIndex<#=i#><T>)) return false;
+            return Equals((JaggedIndex<#=i#><T>)key);
+		}
+
+		public bool Equals(JaggedIndex<#=i#><T> key)
+		{
+			var comparer = EqualityComparer<T>.Default;
+<#
+for (int j = 0; j < i; j++)
+{
+#>
+			if (!comparer.Equals(this.Key<#=j#>, key.Key<#=j#>)) return false;
+<#
+}
+#>
+			return true;
+		}
+
+        public override int GetHashCode()
+        {
+<#
+	if (i == 1)
+	{
+#>
+            return Key0.GetHashCode();
+<#
+	}
+	else
+	{
+#>
+            return TupleHack.CombineHashCodes<#=i#>(
+				<#=string.Join(", ", Enumerable.Range(0, i).Select(_ => "Key" + _ + ".GetHashCode()"))#>);
+<#
+	}
+#>
+        }
+
+        public override string ToString()
+        {
+			return string.Format("[ <#=string.Join(", ", Enumerable.Range(0, i).Select(_ => "{" + _ + "}"))#> ]",
+				<#=string.Join(", ", Enumerable.Range(0, i).Select(_ => "Key" + _))#>);
+        }
+	}
+<#
+}
+#>
+}

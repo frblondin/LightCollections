@@ -20,6 +20,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -28,6 +29,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="StaticReflection, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -45,7 +47,17 @@
   <ItemGroup>
     <Compile Include="Dictionary.cs" />
     <Compile Include="Dictionary.Views.cs" />
+    <Compile Include="DictionaryFactory.cs" />
     <Compile Include="Hacks\HashHelpersHack.cs" />
+    <Compile Include="Hacks\TupleHack.cs" />
+    <Compile Include="JaggedDictionary.Collections.cs" />
+    <Compile Include="JaggedDictionary.cs" />
+    <Compile Include="JaggedDictionary.DebugView.cs" />
+    <Compile Include="JaggedIndex.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>JaggedIndex.tt</DependentUpon>
+    </Compile>
     <Compile Include="LightDictionary.cs" />
     <Compile Include="LightDictionary.Views.cs" />
     <Compile Include="NoLohData.cs" />
@@ -54,7 +66,14 @@
     <Compile Include="Hacks\ThrowHelperHack.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="JaggedIndex.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>JaggedIndex.cs</LastGenOutput>
+    </None>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
