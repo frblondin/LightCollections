@@ -10,7 +10,7 @@ namespace Blondin.LightCollections
 {
     public partial class JaggedDictionary<TKey, TValue>
     {
-        public abstract class AbstractCollection<T> : ICollection<T>, ICollection, IReadOnlyCollection<T>
+        internal abstract class AbstractCollection<T> : ICollection<T>, ICollection, IReadOnlyCollection<T>
         {
             internal readonly JaggedDictionary<TKey, TValue> _dictionary;
             internal readonly Enumerator<T>.Extractor _extractor;
@@ -91,7 +91,7 @@ namespace Blondin.LightCollections
         /// This class cannot be inherited.</summary>
         [DebuggerDisplay("Depth = {Depth}, Count = {Count}")]
         [DebuggerTypeProxy(typeof(JaggedDictionaryKeyCollectionDebugView<,>))]
-        public sealed class KeyCollection : AbstractCollection<IJaggedIndex<TKey>>
+        internal sealed class KeyCollection : AbstractCollection<IJaggedIndex<TKey>>
         {
             internal KeyCollection(JaggedDictionary<TKey, TValue> dictionary)
                 : base(dictionary, enums => JaggedIndex.Create<TKey>(enums.Select(e => (TKey)e.Key).ToArray()))
@@ -110,7 +110,7 @@ namespace Blondin.LightCollections
         /// This class cannot be inherited. </summary>
         [DebuggerDisplay("Depth = {Depth}, Count = {Count}")]
         [DebuggerTypeProxy(typeof(JaggedDictionaryValueCollectionDebugView<,>))]
-        public sealed class ValueCollection : AbstractCollection<TValue>
+        internal sealed class ValueCollection : AbstractCollection<TValue>
         {
             internal ValueCollection(JaggedDictionary<TKey, TValue> dictionary)
                 : base(dictionary, enums => (TValue)enums.Last().Value)
@@ -124,10 +124,8 @@ namespace Blondin.LightCollections
         }
 
         private KeyCollection _keys;
-        /// <summary>Gets a collection containing the keys in the <see cref="T:Blondin.JaggedDictionary`2" />.</summary>
-        /// <returns>A <see cref="T:Blondin.JaggedDictionary`2.KeyCollection" /> containing the keys in the
-        /// <see cref="T:Blondin.JaggedDictionary`2" />.</returns>
-        public KeyCollection Keys
+        /// <summary>Gets an <see cref="T:System.Collections.Generic.ICollection`1" /> containing the keys in the <see cref="T:System.Collections.Generic.IDictionary`2" />.</summary>
+        public ICollection<IJaggedIndex<TKey>> Keys
         {
             get
             {
@@ -137,10 +135,8 @@ namespace Blondin.LightCollections
         }
 
         private ValueCollection _values;
-        /// <summary>Gets a collection containing the values in the <see cref="T:Blondin.JaggedDictionary`2" />.</summary>
-        /// <returns>A <see cref="T:Blondin.JaggedDictionary`2.ValueCollection" /> containing the values in the
-        /// <see cref="T:Blondin.JaggedDictionary`2" />.</returns>
-        public ValueCollection Values
+        /// <summary>Gets an <see cref="T:System.Collections.Generic.ICollection`1" /> containing the values in the <see cref="T:System.Collections.Generic.IDictionary`2" />.</summary>
+        public ICollection<TValue> Values
         {
             get
             {

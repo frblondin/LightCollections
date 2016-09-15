@@ -31,7 +31,7 @@ namespace Blondin.LightCollections
 
     internal sealed class JaggedDictionaryKeyCollectionDebugView<TKey, TValue>
     {
-        private JaggedDictionary<TKey, TValue>.KeyCollection _collection;
+        private ICollection<IJaggedIndex<TKey>> _collection;
 
         [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
         public IJaggedIndex<TKey>[] Items
@@ -42,7 +42,7 @@ namespace Blondin.LightCollections
             }
         }
 
-        public JaggedDictionaryKeyCollectionDebugView(JaggedDictionary<TKey, TValue>.KeyCollection collection)
+        public JaggedDictionaryKeyCollectionDebugView(ICollection<IJaggedIndex<TKey>> collection)
         {
             if (collection == null)
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.collection);
@@ -53,9 +53,9 @@ namespace Blondin.LightCollections
 
     internal sealed class JaggedDictionaryValueCollectionDebugView<TKey, TValue>
     {
-        private JaggedDictionary<TKey, TValue>.ValueCollection _collection;
+        private ICollection<TValue> _collection;
 
-        public JaggedDictionaryValueCollectionDebugView(JaggedDictionary<TKey, TValue>.ValueCollection collection)
+        public JaggedDictionaryValueCollectionDebugView(ICollection<TValue> collection)
         {
             if (collection == null)
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.collection);
