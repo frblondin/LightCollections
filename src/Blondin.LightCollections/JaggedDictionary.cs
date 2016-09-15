@@ -13,7 +13,7 @@ namespace Blondin.LightCollections
     /// <typeparam name="TValue">The type of the values in the dictionary.</typeparam>
     [DebuggerTypeProxy(typeof(JaggedDictionaryDebugView<,>))]
     [DebuggerDisplay("Depth = {Depth}, Count = {Count}")]
-    public partial class JaggedDictionary<TKey, TValue> : IEnumerable<KeyValuePair<IJaggedIndex<TKey>, TValue>>
+    public partial class JaggedDictionary<TKey, TValue> : IDictionary<IJaggedIndex<TKey>, TValue>
     {
         #region Enumerator
         internal struct Enumerator<T> : IEnumerator<T>, IDisposable, IEnumerator
@@ -108,9 +108,12 @@ namespace Blondin.LightCollections
 
         private readonly IDictionaryFactory<TKey> _dictionaryFactory;
         private readonly System.Collections.IDictionary _root;
+        /// <summary>Gets the depth.</summary>
+        /// <value>The depth.</value>
         public int Depth { get; private set; }
         private int _count;
 
+        /// <summary>Gets the number of elements contained in the <see cref="T:System.Collections.Generic.ICollection`1" />.</summary>
         public int Count { get { return _count; } }
 
         /// <summary>Gets or sets the value associated with the specified jagged index.</summary>
@@ -192,6 +195,9 @@ namespace Blondin.LightCollections
             }
         }
 
+        /// <summary>Gets a value indicating whether the <see cref="T:System.Collections.Generic.ICollection`1" /> is read-only.</summary>
+        public bool IsReadOnly => false;
+
         /// <summary>Initializes a new instance of the <see cref="T:Blondin.JaggedDictionary`2" />
         /// class that is empty, has the default initial capacity, and uses the default equality
         /// comparer for the key type.</summary>
@@ -230,6 +236,8 @@ namespace Blondin.LightCollections
             return (IDictionary<TKey, TValue>)result;
         }
 
+        /// <summary>Returns an enumerator that iterates through the collection.</summary>
+        /// <returns>An enumerator that can be used to iterate through the collection.</returns>
         public IEnumerator<KeyValuePair<IJaggedIndex<TKey>, TValue>> GetEnumerator()
         {
             return new Enumerator<KeyValuePair<IJaggedIndex<TKey>, TValue>>(this,
@@ -258,6 +266,96 @@ namespace Blondin.LightCollections
                 }
             }
             return false;
+        }
+
+        /// <summary>Determines whether the <see cref="T:System.Collections.Generic.IDictionary`2" /> contains a specific key.</summary>
+        /// <returns>true if the <see cref="T:System.Collections.Generic.IDictionary`2" /> contains an element with the key; otherwise, false.</returns>
+        /// <param name="key">The key to locate in the <see cref="T:System.Collections.Generic.IDictionary`2" />.</param>
+        public bool ContainsKey(IJaggedIndex<TKey> key)
+        {
+            var dictionary = ResolveLeafDictionary(i => key[i], false);
+            if (dictionary == null) return false;
+            return dictionary.ContainsKey(key[key.Depth - 1]);
+        }
+
+        /// <summary>Adds an element with the provided key and value to the <see cref="T:System.Collections.Generic.IDictionary`2" />.</summary>
+        /// <param name="key">The object to use as the key of the element to add.</param>
+        /// <param name="value">The object to use as the value of the element to add.</param>
+        public void Add(IJaggedIndex<TKey> key, TValue value)
+        {
+            var dictionary = ResolveLeafDictionary(i => key[i], true);
+            dictionary.Add(key[key.Depth - 1], value);
+            _count++;
+        }
+
+        /// <summary>Removes the element with the specified key from the <see cref="T:System.Collections.Generic.IDictionary`2" />.</summary>
+        /// <param name="key">The key of the element to remove.</param>
+        /// <returns>true if the element is successfully removed; otherwise, false.  This method also returns false if <paramref name="key" /> was not found in the original <see cref="T:System.Collections.Generic.IDictionary`2" />.</returns>
+        public bool Remove(IJaggedIndex<TKey> key)
+        {
+            var dictionary = ResolveLeafDictionary(i => key[i], false);
+            if (dictionary == null || !dictionary.Remove(key[key.Depth - 1])) return false;
+            _count--;
+            return true;
+        }
+
+        /// <summary>Gets the value associated with the specified key.</summary>
+        /// <param name="key">The key whose value to get.</param>
+        /// <param name="value">When this method returns, the value associated with the specified key, if the key is found; otherwise, the default value for the type of the <paramref name="value" /> parameter. This parameter is passed uninitialized.</param>
+        /// <returns>true if the object that implements <see cref="T:System.Collections.Generic.IDictionary`2" /> contains an element with the specified key; otherwise, false.</returns>
+        public bool TryGetValue(IJaggedIndex<TKey> key, out TValue value)
+        {
+            var dictionary = ResolveLeafDictionary(i => key[i], false);
+            if (dictionary != null) return dictionary.TryGetValue(key[key.Depth - 1], out value);
+            value = default(TValue);
+            return false;
+        }
+
+        /// <summary>Removes all items from the <see cref="T:System.Collections.Generic.ICollection`1" />.</summary>
+        public void Clear()
+        {
+            _root.Clear();
+            _count = 0;
+        }
+
+        /// <summary>Adds an item to the <see cref="T:System.Collections.Generic.ICollection`1" />.</summary>
+        /// <param name="item">The object to add to the <see cref="T:System.Collections.Generic.ICollection`1" />.</param>
+        public void Add(KeyValuePair<IJaggedIndex<TKey>, TValue> item)
+        {
+            Add(item.Key, item.Value);
+        }
+
+        /// <summary>Determines whether the <see cref="T:System.Collections.Generic.ICollection`1" /> contains a specific value.</summary>
+        /// <param name="item">The object to locate in the <see cref="T:System.Collections.Generic.ICollection`1" />.</param>
+        /// <returns>true if <paramref name="item" /> is found in the <see cref="T:System.Collections.Generic.ICollection`1" />; otherwise, false.</returns>
+        public bool Contains(KeyValuePair<IJaggedIndex<TKey>, TValue> item)
+        {
+            var dictionary = ResolveLeafDictionary(i => item.Key[i], false);
+            if (dictionary == null) return false;
+            return dictionary.Contains(new KeyValuePair<TKey, TValue>(item.Key[item.Key.Depth - 1], item.Value));
+        }
+
+        /// <summary>Removes the first occurrence of a specific object from the <see cref="T:System.Collections.Generic.ICollection`1" />.</summary>
+        /// <param name="item">The object to remove from the <see cref="T:System.Collections.Generic.ICollection`1" />.</param>
+        /// <returns>true if <paramref name="item" /> was successfully removed from the <see cref="T:System.Collections.Generic.ICollection`1" />; otherwise, false. This method also returns false if <paramref name="item" /> is not found in the original <see cref="T:System.Collections.Generic.ICollection`1" />.</returns>
+        public bool Remove(KeyValuePair<IJaggedIndex<TKey>, TValue> item)
+        {
+            return Remove(item.Key);
+        }
+
+        /// <summary>Copies to.</summary>
+        /// <param name="array">The array.</param>
+        /// <param name="index">The index.</param>
+        public void CopyTo(KeyValuePair<IJaggedIndex<TKey>, TValue>[] array, int index)
+        {
+            if (array == null) ThrowHelper.ThrowArgumentNullException(ExceptionArgument.array);
+            if (index < 0 || index > array.Length) ThrowHelper.ThrowArgumentOutOfRangeException2(ExceptionArgument.index, ExceptionResource.ArgumentOutOfRange_NeedNonNegNum);
+            if (array.Length - index < Count) ThrowHelper.ThrowArgumentException(ExceptionResource.Arg_ArrayPlusOffTooSmall);
+            int i = 0;
+            foreach (var kvp in this)
+            {
+                array[index + (i++)] = kvp;
+            }
         }
     }
 }

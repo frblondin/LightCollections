@@ -49,6 +49,73 @@ namespace Blondin.LightCollections.Tests
         }
 
         [Theory, CustomAutoData(1)]
+        public void Add_1Dimension(JaggedDictionary<int, string> sut, JaggedIndex1<int> key, string value)
+        {
+            sut.Add(key, value);
+            Assert.Equal(value, sut[key]);
+            Assert.Equal(1, sut.Count);
+        }
+
+        [Theory, CustomAutoData(1)]
+        public void NotContainsKey_1Dimension(JaggedDictionary<int, string> sut, JaggedIndex1<int> key, string value)
+        {
+            Assert.False(sut.ContainsKey(key));
+        }
+
+        [Theory, CustomAutoData(1)]
+        public void AddAndContainsKey_1Dimension(JaggedDictionary<int, string> sut, JaggedIndex1<int> key, string value)
+        {
+            sut.Add(key, value);
+            Assert.True(sut.ContainsKey(key));
+        }
+
+        [Theory, CustomAutoData(1)]
+        public void NotTryGetValue_1Dimension(JaggedDictionary<int, string> sut, JaggedIndex1<int> key, string value)
+        {
+            string val;
+            Assert.False(sut.TryGetValue(key, out val));
+        }
+
+        [Theory, CustomAutoData(1)]
+        public void AddAndTryGetValue_1Dimension(JaggedDictionary<int, string> sut, JaggedIndex1<int> key, string value)
+        {
+            sut.Add(key, value);
+            string val;
+            Assert.True(sut.TryGetValue(key, out val));
+            Assert.Equal(value, val);
+        }
+
+        [Theory, CustomAutoData(1)]
+        public void NotRemove_1Dimension(JaggedDictionary<int, string> sut, JaggedIndex1<int> key, string value)
+        {
+            Assert.False(sut.Remove(key));
+        }
+
+        [Theory, CustomAutoData(1)]
+        public void AddAndRemove_1Dimension(JaggedDictionary<int, string> sut, JaggedIndex1<int> key, string value)
+        {
+            sut.Add(key, value);
+            Assert.True(sut.Remove(key));
+            Assert.False(sut.ContainsKey(key));
+            Assert.Equal(0, sut.Count);
+        }
+
+        [Theory, CustomAutoData(1)]
+        public void Clear_1Dimension(JaggedDictionary<int, string> sut, JaggedIndex1<int> key, string value)
+        {
+            sut.Clear();
+            Assert.Equal(0, sut.Count);
+        }
+
+        [Theory, CustomAutoData(1)]
+        public void AddAndClear_1Dimension(JaggedDictionary<int, string> sut, JaggedIndex1<int> key, string value)
+        {
+            sut.Add(key, value);
+            sut.Clear();
+            Assert.Equal(0, sut.Count);
+        }
+
+        [Theory, CustomAutoData(1)]
         public void SetAndGetIndexedArrayKey_1Dimension(JaggedDictionary<int, string> sut, JaggedIndex1<int> key, string value)
         {
             sut[key.GetValues()] = value;
@@ -81,6 +148,73 @@ namespace Blondin.LightCollections.Tests
         {
             sut[(IList<int>)key.GetValues()] = value;
             Assert.Equal(value, sut[(IList<int>)key.GetValues()]);
+        }
+
+        [Theory, CustomAutoData(1)]
+        public void Add_5Dimension(JaggedDictionary<int, string> sut, JaggedIndex5<int> key, string value)
+        {
+            sut.Add(key, value);
+            Assert.Equal(value, sut[key]);
+            Assert.Equal(1, sut.Count);
+        }
+
+        [Theory, CustomAutoData(1)]
+        public void NotContainsKey_5Dimension(JaggedDictionary<int, string> sut, JaggedIndex5<int> key, string value)
+        {
+            Assert.False(sut.ContainsKey(key));
+        }
+
+        [Theory, CustomAutoData(1)]
+        public void AddAndContainsKey_5Dimension(JaggedDictionary<int, string> sut, JaggedIndex5<int> key, string value)
+        {
+            sut.Add(key, value);
+            Assert.True(sut.ContainsKey(key));
+        }
+
+        [Theory, CustomAutoData(1)]
+        public void NotTryGetValue_5Dimension(JaggedDictionary<int, string> sut, JaggedIndex5<int> key, string value)
+        {
+            string val;
+            Assert.False(sut.TryGetValue(key, out val));
+        }
+
+        [Theory, CustomAutoData(1)]
+        public void AddAndTryGetValue_5Dimension(JaggedDictionary<int, string> sut, JaggedIndex5<int> key, string value)
+        {
+            sut.Add(key, value);
+            string val;
+            Assert.True(sut.TryGetValue(key, out val));
+            Assert.Equal(value, val);
+        }
+
+        [Theory, CustomAutoData(1)]
+        public void NotRemove_5Dimension(JaggedDictionary<int, string> sut, JaggedIndex5<int> key, string value)
+        {
+            Assert.False(sut.Remove(key));
+        }
+
+        [Theory, CustomAutoData(1)]
+        public void AddAndRemove_5Dimension(JaggedDictionary<int, string> sut, JaggedIndex5<int> key, string value)
+        {
+            sut.Add(key, value);
+            Assert.True(sut.Remove(key));
+            Assert.False(sut.ContainsKey(key));
+            Assert.Equal(0, sut.Count);
+        }
+
+        [Theory, CustomAutoData(1)]
+        public void Clear_5Dimension(JaggedDictionary<int, string> sut, JaggedIndex5<int> key, string value)
+        {
+            sut.Clear();
+            Assert.Equal(0, sut.Count);
+        }
+
+        [Theory, CustomAutoData(1)]
+        public void AddAndClear_5Dimension(JaggedDictionary<int, string> sut, JaggedIndex5<int> key, string value)
+        {
+            sut.Add(key, value);
+            sut.Clear();
+            Assert.Equal(0, sut.Count);
         }
 
         [Theory, CustomAutoData(4)]
