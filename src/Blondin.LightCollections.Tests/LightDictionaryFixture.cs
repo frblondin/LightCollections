@@ -35,7 +35,7 @@ namespace Blondin.LightCollections.Tests
                 Assert.Equal(i.ToString(), sut[i]);
         }
 
-        [Fact]
+        [Fact(Skip = "Only for tracking perf")]
         public void Bench()
         {
             int count = 10000000;

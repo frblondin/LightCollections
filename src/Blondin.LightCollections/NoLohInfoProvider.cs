@@ -14,7 +14,7 @@ namespace Blondin.LightCollections
 
         public static int GetMemoryFootprint(Type type)
         {
-            if (type.IsClass || type.IsPrimitive) return 1;
+            if (type.IsClass || type.IsPrimitive) return 4;
             return (from field in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
                     select GetMemoryFootprint(field.FieldType)).Sum();
         }

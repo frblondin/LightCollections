@@ -34,8 +34,8 @@ namespace System
         private static TDelegate CreateHashCodeLambda<TDelegate>(int parameterCount, IList<ParameterExpression> hashParams)
         {
             return Expression.Lambda<TDelegate>(
-                Expression.Call(ResolveCombineMethod(2), hashParams.Take(2).ToArray()),
-                hashParams.Take(2).ToArray()).Compile();
+                Expression.Call(ResolveCombineMethod(parameterCount), hashParams.Take(parameterCount).ToArray()),
+                hashParams.Take(parameterCount).ToArray()).Compile();
         }
 
         private static MethodInfo ResolveCombineMethod(int parameterCount)

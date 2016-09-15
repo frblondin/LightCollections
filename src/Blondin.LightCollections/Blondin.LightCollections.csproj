@@ -31,6 +31,12 @@
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>..\signing.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="StaticReflection, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\ExpressionReflection.1.2.0\lib\net45\StaticReflection.dll</HintPath>
@@ -45,8 +51,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Dictionary.cs" />
-    <Compile Include="Dictionary.Views.cs" />
     <Compile Include="DictionaryFactory.cs" />
     <Compile Include="Hacks\HashHelpersHack.cs" />
     <Compile Include="Hacks\TupleHack.cs" />
@@ -66,6 +70,9 @@
     <Compile Include="Hacks\ThrowHelperHack.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Blondin.LightCollections.nuspec">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="JaggedIndex.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>JaggedIndex.cs</LastGenOutput>

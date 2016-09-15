@@ -32,7 +32,7 @@ namespace Blondin.LightCollections
 			switch (keys.Count)
 			{
 <#
-int maxDepth = 9;
+int maxDepth = 16;
 for (int i = 1; i < maxDepth; i++)
 {
 	var genericArguments = string.Join(", ", Enumerable.Range(0, i).Select(_ => "T"));
@@ -125,11 +125,20 @@ for (int j = 0; j < i; j++)
             return Key0.GetHashCode();
 <#
 	}
-	else
+	else if (i <= 8)
 	{
 #>
             return TupleHack.CombineHashCodes<#=i#>(
 				<#=string.Join(", ", Enumerable.Range(0, i).Select(_ => "Key" + _ + ".GetHashCode()"))#>);
+<#
+	}
+	else
+	{
+#>
+			var hash = TupleHack.CombineHashCodes8(
+				<#=string.Join(", ", Enumerable.Range(0, 8).Select(_ => "Key" + _ + ".GetHashCode()"))#>);
+            return TupleHack.CombineHashCodes<#=1 + i - 8#>(hash,
+				<#=string.Join(", ", Enumerable.Range(8, i - 8).Select(_ => "Key" + _ + ".GetHashCode()"))#>);
 <#
 	}
 #>

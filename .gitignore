@@ -1,6 +1,11 @@
+.idea/
+.svn/
+obj/
+bin/
 *.suo
-
-**/bin
-**/obj
-packages/*
-!packages/repositories.config
+*.user
+*.map
+out/
+*.orig
+*.patch
+**/packages/*

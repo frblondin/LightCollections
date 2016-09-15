@@ -14,7 +14,7 @@ namespace ConsoleApplication1
         {
             int count = 10000000;
             BenchImpl(new LightDictionary<string, int>(), count);
-            BenchImpl(new Blondin.LightCollections.Dictionary<string, int>(), count);
+            BenchImpl(new Dictionary<string, int>(), count);
             //BenchImpl(new LightDictionary<int, string>(), count);
             //BenchImpl(new Blondin.LightCollections.Dictionary<int, string>(), count);
         }
