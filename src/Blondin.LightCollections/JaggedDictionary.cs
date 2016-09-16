@@ -20,22 +20,23 @@ namespace Blondin.LightCollections
         {
             internal delegate T Extractor(IDictionaryEnumerator[] enums);
 
-            private readonly JaggedDictionary<TKey, TValue> _dictionary;
+            private readonly int _depth;
             private readonly IDictionaryEnumerator[] _enumerators;
             private readonly Extractor _extractor;
 
             public Enumerator(JaggedDictionary<TKey, TValue> dictionary, Extractor extractor)
             {
-                this._dictionary = dictionary;
-                this._enumerators = new IDictionaryEnumerator[dictionary.Depth];
-                this._extractor = extractor;
+                _depth = dictionary.Depth;
+                _enumerators = new IDictionaryEnumerator[_depth];
+                _enumerators[0] = dictionary._root.GetEnumerator();
+                _extractor = extractor;
             }
 
             public T Current
             {
                 get
                 {
-                    if (_enumerators[_dictionary.Depth - 1] == null)
+                    if (_enumerators[_depth - 1] == null)
                         ThrowHelper.ThrowInvalidOperationException(ExceptionResource.InvalidOperation_EnumOpCantHappen);
 
                     return _extractor(_enumerators);
@@ -56,37 +57,27 @@ namespace Blondin.LightCollections
 
             public bool MoveNext()
             {
-                int i = 0;
-                while (i >= 0 && i < _dictionary.Depth)
+                var i = 0;
+                while (i < _depth)
                 {
                     if (_enumerators[i] == null)
                     {
-                        if (i == 0)
+                        if (!_enumerators[i - 1].MoveNext())
                         {
-                            _enumerators[i] = _dictionary._root.GetEnumerator();
+                            i--;
+                            if (i == 0) return false;
+                            _enumerators[i] = null;
+                            continue;
                         }
-                        else
-                        {
-                            if (!_enumerators[i - 1].MoveNext())
-                            {
-                                if (i == 1) return false;
-                                _enumerators[i] = null;
-                                _enumerators[i - 1] = null;
-                                i--;
-                                continue;
-                            }
-                            var upperDictionary = (IDictionary)_enumerators[i - 1].Value;
-                            _enumerators[i] = upperDictionary.GetEnumerator();
-                        }
+                        var upperDictionary = (IDictionary)_enumerators[i - 1].Value;
+                        _enumerators[i] = upperDictionary.GetEnumerator();
                     }
-                    if (_dictionary.Depth > 1 && i == _dictionary.Depth - 1)
+                    if (i == _depth - 1)
                     {
                         if (!_enumerators[i].MoveNext())
                         {
-                            if (i == 1) return false;
+                            if (i == 0) return false;
                             _enumerators[i] = null;
-                            _enumerators[i - 1] = null;
-                            i--;
                             continue;
                         }
                         return true;
@@ -98,7 +89,7 @@ namespace Blondin.LightCollections
 
             public void Reset()
             {
-                for (int i = 0; i < _dictionary.Depth; i++) _enumerators[i] = null;
+                for (var i = 0; i < _depth; i++) _enumerators[i] = null;
             }
         }
         #endregion
