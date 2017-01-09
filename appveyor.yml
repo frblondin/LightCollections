@@ -17,6 +17,11 @@ build:
   project: 'src\LightCollections.sln'
   publish_nuget: true
 
+test:
+  # assemblies to test - optional
+  assemblies:    
+    - '**\*.tests.dll'
+  
 after_build:
   - cmd: nuget pack src\Blondin.LightCollections\Blondin.LightCollections.nuspec -version "%APPVEYOR_BUILD_VERSION%"
 
