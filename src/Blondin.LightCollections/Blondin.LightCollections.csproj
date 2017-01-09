@@ -43,7 +43,6 @@
   <ItemGroup>
     <Reference Include="StaticReflection, Version=2.0.4.0, Culture=neutral, PublicKeyToken=b6cf42357ca8f072, processorArchitecture=MSIL">
       <HintPath>..\packages\ExpressionReflection.2.0.4\lib\net45\StaticReflection.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
