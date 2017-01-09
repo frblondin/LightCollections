@@ -21,15 +21,18 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
+    <DebugType>full</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>..\signing.snk</AssemblyOriginatorKeyFile>
@@ -38,8 +41,8 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="StaticReflection, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ExpressionReflection.1.2.0\lib\net45\StaticReflection.dll</HintPath>
+    <Reference Include="StaticReflection, Version=2.0.4.0, Culture=neutral, PublicKeyToken=b6cf42357ca8f072, processorArchitecture=MSIL">
+      <HintPath>..\packages\ExpressionReflection.2.0.4\lib\net45\StaticReflection.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
