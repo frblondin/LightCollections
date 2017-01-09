@@ -307,13 +307,13 @@ namespace Blondin.LightCollections
 #endif
 
             info.AddValue(HashSizeName, _size); //This is the length of the bucket array.
-            if (_size != null)
-            {
+            /*if (_size != null)
+            {*/
                 // TODO: We should rather store raw arrays to avoid storing large arrays
                 KeyValuePair<TKey, TValue>[] array = new KeyValuePair<TKey, TValue>[Count];
                 CopyTo(array, 0);
                 info.AddValue(KeyValuePairsName, array, typeof(KeyValuePair<TKey, TValue>[]));
-            }
+            //}
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
