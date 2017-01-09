@@ -1,0 +1,28 @@
+version: '1.0.{build}.0'
+
+configuration: Release
+
+assembly_info:
+  patch: true
+  file: '**\AssemblyInfo.*'
+  assembly_version: '{version}'
+  assembly_file_version: '{version}'
+  assembly_informational_version: '{version}'
+
+build:
+  parallel: true
+  project: 'src\LightCollections.sln'
+  publish_nuget: true
+
+after_build:
+  - cmd: nuget pack src\Blondin.LightCollections\Blondin.LightCollections.nuspec -version "%APPVEYOR_BUILD_VERSION%"
+
+artifacts:
+  path: 'Blondin.LightCollections*.nupkg'
+
+# deploy:
+  # provider: NuGet
+  # api_key:
+    # secure: srBMVDxxxhVG
+  # artifact: /Blondin.LightCollections.*\.nupkg/
+  # skip_symbols: false
