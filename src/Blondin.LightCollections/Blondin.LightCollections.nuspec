@@ -13,8 +13,11 @@
     <releaseNotes></releaseNotes>
     <copyright></copyright>
     <tags>Microsoft Collections GAC LOH</tags>
+    <dependencies>
+      <dependency id="ExpressionReflection" version="2.0.4" />
+    </dependencies>
   </metadata>
   <files>
-	<file src="bin\$configuration$\Blondin.LightCollections.dll" target="lib\net45\" />
+	  <file src="bin\$configuration$\Blondin.LightCollections.*" target="lib\net45" />
   </files>
 </package>

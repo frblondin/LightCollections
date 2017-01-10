@@ -39,3 +39,15 @@ This shows that LightDictionary doesn't consume any memory in the Large Object H
 I did many tunings to have the best performance. According to the profiler, the remaining reason why the LightDictionary is slow is because of the additional indexed array access: entries[n] is now replaced with entries[x][y].
 
 Any help on that would be much appreciated as I can't see any way of improving this...
+
+# Build
+
+This project is built on appveyor: (soon)
+
+And available on nuget: [Nuget](https://www.nuget.org/packages/Blondin.LightCollections/)
+
+This library depends on ExpressionReflection/StaticReflection library: https://github.com/mtranter/StaticReflection/
+
+# License
+
+This library is licensed under MIT License. See LICENSE file

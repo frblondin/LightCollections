@@ -13,7 +13,9 @@ namespace Blondin.LightCollections.Tests
         public struct FakeStructure
         {
             public int Field;
+#pragma warning disable CS0169
             private OtherStructure OtherField;
+#pragma warning restore CS0169
         }
         public struct OtherStructure
         {
