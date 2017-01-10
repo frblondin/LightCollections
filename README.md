@@ -42,7 +42,7 @@ Any help on that would be much appreciated as I can't see any way of improving t
 
 # Build
 
-This project is built on appveyor: (soon)
+This project is built on appveyor: [![Build status](https://ci.appveyor.com/api/projects/status/exbcgj2qrtc3is9q?svg=true)](https://ci.appveyor.com/project/frblondin/lightcollections)
 
 And available on nuget: [Nuget](https://www.nuget.org/packages/Blondin.LightCollections/)
 
