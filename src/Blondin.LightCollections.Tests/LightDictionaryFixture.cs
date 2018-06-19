@@ -59,5 +59,21 @@ namespace Blondin.LightCollections.Tests
                 dictionary.GetType(),
                 watch.Elapsed));
         }
+
+        [Fact]
+        public void KeyEnumeration()
+        {
+            // Arrange
+            var sut = new LightDictionary<int, string>();
+            var i = 0;
+            while (i++ < 100) sut[i] = i.ToString();
+
+            // Act
+            var values = new List<int>();
+            foreach (var k in sut.Keys) values.Add(k);
+
+            // Assert
+            Assert.Equal(100, values.Count);
+        }
     }
 }
