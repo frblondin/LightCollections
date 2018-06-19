@@ -65,6 +65,9 @@
       <DependentUpon>JaggedIndex.tt</DependentUpon>
     </Compile>
     <Compile Include="LightDictionary.cs" />
+    <Compile Include="LightDictionary.Enumerator.cs" />
+    <Compile Include="LightDictionary.KeyCollection.cs" />
+    <Compile Include="LightDictionary.ValueCollection.cs" />
     <Compile Include="LightDictionary.Views.cs" />
     <Compile Include="NoLohData.cs" />
     <Compile Include="NoLohInfoProvider.cs" />
