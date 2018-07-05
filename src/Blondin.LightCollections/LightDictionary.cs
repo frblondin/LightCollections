@@ -417,7 +417,7 @@ namespace Blondin.LightCollections
             int index;
             if (freeCount > 0)
             {
-                index = ExtractChunkAndIndexInChunk(freeList, _maxEntryChunkElementCount, ref indexInChunk, ref indexIndexInChunk);
+                index = ExtractChunkAndIndexInChunk(freeList, _maxEntryChunkElementCount, ref indexChunk, ref indexIndexInChunk);
                 freeList = _entries.Values[indexChunk][indexIndexInChunk].next;
                 freeCount--;
             }
