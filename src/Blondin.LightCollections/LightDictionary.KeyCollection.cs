@@ -48,8 +48,8 @@ namespace Blondin.LightCollections
                 var count = dictionary.count;
                 var entries = dictionary._entries;
                 var temp = 0;
-                for (int i = 0; i < entries.VirtualArrayCount && temp < count; i++)
-                    for (int j = 0; j < entries.Values[i].Length && temp < count; j++)
+                for (int i = 0; temp < count && i < entries.VirtualArrayCount; i++)
+                    for (int j = 0; temp < count && j < entries.Values[i].Length; j++)
                     {
                         if (entries.Values[i][j].hashCode >= 0)
                         {
@@ -141,12 +141,15 @@ namespace Blondin.LightCollections
                     }
 
                     var entries = dictionary._entries;
+                    var count = dictionary.count;
                     try
                     {
-                        for (int i = 0; i < entries.VirtualArrayCount; i++)
-                            for (int j = 0; j < entries.Values[i].Length; j++)
+                        var temp = 0;
+                        for (int i = 0; temp < count && i < entries.VirtualArrayCount; i++)
+                            for (int j = 0; temp < count && j < entries.Values[i].Length; j++)
                             {
                                 if (entries.Values[i][j].hashCode >= 0) objects[index++] = entries.Values[i][j].key;
+                                temp++;
                             }
                     }
                     catch (ArrayTypeMismatchException)

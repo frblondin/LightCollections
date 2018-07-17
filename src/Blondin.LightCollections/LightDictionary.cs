@@ -234,19 +234,27 @@ namespace Blondin.LightCollections
         {
             if (value == null)
             {
-                for (int i = 0; i < _entries.VirtualArrayCount; i++)
+                var pos = 0;
+                for (int i = 0; pos < count && i < _entries.VirtualArrayCount; i++)
                 {
-                    for (int j = 0; j < _entries.Values[i].Length; j++)
+                    for (int j = 0; pos < count && j < _entries.Values[i].Length; j++)
+                    {
                         if (_entries.Values[i][j].hashCode >= 0 && _entries.Values[i][j].value == null) return true;
+                        pos++;
+                    }
                 }
             }
             else
             {
                 EqualityComparer<TValue> c = EqualityComparer<TValue>.Default;
-                for (int i = 0; i < _entries.VirtualArrayCount; i++)
+                var pos = 0;
+                for (int i = 0; pos < count && i < _entries.VirtualArrayCount; i++)
                 {
-                    for (int j = 0; j < _entries.Values[i].Length; j++)
+                    for (int j = 0; pos < count && j < _entries.Values[i].Length; j++)
+                    {
                         if (_entries.Values[i][j].hashCode >= 0 && c.Equals(_entries.Values[i][j].value, value)) return true;
+                        pos++;
+                    }
                 }
             }
             return false;
@@ -270,13 +278,15 @@ namespace Blondin.LightCollections
             }
 
             var entries = this._entries;
-            for (int i = 0; i < entries.VirtualArrayCount; i++)
-                for (int j = 0; j < entries.Values[i].Length; j++)
+            var pos = 0;
+            for (int i = 0; pos < count && i < entries.VirtualArrayCount; i++)
+                for (int j = 0; pos < count && j < entries.Values[i].Length; j++)
                 {
                     if (entries.Values[i][j].hashCode >= 0)
                     {
-                        array[index++] = new KeyValuePair<TKey, TValue>(entries.Values[i][j].key, entries.Values[i][j].value);
-                        if (index >= count) return;
+                        array[index + pos] = new KeyValuePair<TKey, TValue>(entries.Values[i][j].key, entries.Values[i][j].value);
+                        pos++;
+                        if (index + pos >= count) return;
                     }
             }
         }
@@ -365,7 +375,7 @@ namespace Blondin.LightCollections
             _size = HashHelpers.GetPrime(capacity);
             _buckets = new NoLohData<int>();
             _entries = new NoLohData<Entry>();
-            
+
             _buckets.EnsureSize(_size);
             _buckets.SetAllValues(-1);
 
@@ -489,7 +499,7 @@ namespace Blondin.LightCollections
                 freeList = -1;
 
                 KeyValuePair<TKey, TValue>[] array = (KeyValuePair<TKey, TValue>[])
-                    siInfo.GetValue(KeyValuePairsName, typeof(KeyValuePair<TKey, TValue>[]));
+                siInfo.GetValue(KeyValuePairsName, typeof(KeyValuePair<TKey, TValue>[]));
 
                 if (array == null)
                 {
@@ -522,28 +532,32 @@ namespace Blondin.LightCollections
         private void Resize(int newSize, bool forceNewHashCodes)
         {
             Contract.Assert(newSize >= _size);
+            _buckets = _buckets ?? new NoLohData<int>();
             _buckets.EnsureSize(newSize);
             _buckets.SetAllValues(-1);
+            _entries = _entries ?? new NoLohData<Entry>();
             _entries.EnsureSize(newSize);
+            int temp = 0;
             if (forceNewHashCodes)
             {
-                for (int i = 0; i < _entries.VirtualArrayCount; i++)
+                for (int i = 0; temp < count && i < _entries.VirtualArrayCount; i++)
                 {
                     var chunkData = _entries.Values[i];
-                    for (int j = 0; j < chunkData.Length; j++)
+                    for (int j = 0; temp < count && j < chunkData.Length; j++)
                     {
                         if (chunkData[j].hashCode != -1)
                         {
                             chunkData[j].hashCode = (comparer.GetHashCode(chunkData[j].key) & 0x7FFFFFFF);
+                            temp++;
                         }
                     }
                 }
             }
-            int temp = 0;
-            for (int i = 0; i < _entries.VirtualArrayCount && temp < count; i++)
+            temp = 0;
+            for (int i = 0; temp < count && i < _entries.VirtualArrayCount ; i++)
             {
                 var chunkData = _entries.Values[i];
-                for (int j = 0; j < chunkData.Length && temp < count; j++)
+                for (int j = 0; temp < count && j < chunkData.Length; j++)
                 {
                     if (chunkData[j].hashCode >= 0)
                     {
@@ -677,12 +691,14 @@ namespace Blondin.LightCollections
             {
                 DictionaryEntry[] dictEntryArray = array as DictionaryEntry[];
                 var entries = this._entries;
-                for (int i = 0; i < entries.VirtualArrayCount; i++)
-                    for (int j = 0; j < entries.Values[i].Length; j++)
+                var pos = 0;
+                for (int i = 0; pos < count && i < entries.VirtualArrayCount; i++)
+                    for (int j = 0; pos < count && j < entries.Values[i].Length; j++)
                     {
                         if (entries.Values[i][j].hashCode >= 0)
                         {
-                            dictEntryArray[index++] = new DictionaryEntry(entries.Values[i][j].key, entries.Values[i][j].value);
+                            dictEntryArray[index + pos] = new DictionaryEntry(entries.Values[i][j].key, entries.Values[i][j].value);
+                            pos++;
                         }
                 }
             }
@@ -697,12 +713,14 @@ namespace Blondin.LightCollections
                 try
                 {
                     var entries = this._entries;
-                    for (int i = 0; i < entries.VirtualArrayCount; i++)
-                        for (int j = 0; j < entries.Values[i].Length; j++)
+                    var pos = 0;
+                    for (int i = 0; pos < count && i < entries.VirtualArrayCount; i++)
+                        for (int j = 0; pos < count && j < entries.Values[i].Length; j++)
                         {
                             if (entries.Values[i][j].hashCode >= 0)
                             {
-                                objects[index++] = new KeyValuePair<TKey, TValue>(entries.Values[i][j].key, entries.Values[i][j].value);
+                                objects[index + pos] = new KeyValuePair<TKey, TValue>(entries.Values[i][j].key, entries.Values[i][j].value);
+                                pos++;
                             }
                         }
                 }
