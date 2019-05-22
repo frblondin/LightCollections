@@ -1,4 +1,4 @@
-version: '1.1.{build}.0'
+version: '1.2.{build}.0'
 
 configuration: Release
 
@@ -10,12 +10,10 @@ assembly_info:
   assembly_informational_version: '{version}'
 
 before_build:
-  nuget restore src\LightCollections.sln
+  - dotnet restore src\LightCollections.sln
 
-build:
-  parallel: true
-  project: 'src\LightCollections.sln'
-  publish_nuget: true
+build_script:
+  - cmd: dotnet build src\LightCollections.sln --configuration Release /p:SourceLinkCreate=true /p:IncludeSymbols=true /p:IncludeSource=true /v:n
 
 test:
   # assemblies to test - optional
@@ -23,7 +21,8 @@ test:
     - '**\*.tests.dll'
   
 after_build:
-  - cmd: nuget pack src\Blondin.LightCollections\Blondin.LightCollections.nuspec -version "%APPVEYOR_BUILD_VERSION%"
+  - ps: |
+      dotnet pack src\Blondin.LightCollections --no-build --configuration Release /p:Version="$ENV:APPVEYOR_BUILD_VERSION" -o ..\.. --include-symbols --include-source
 
 artifacts:
   path: 'Blondin.LightCollections*.nupkg'

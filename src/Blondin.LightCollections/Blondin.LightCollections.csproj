@@ -1,40 +1,19 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\GitLink.3.1.0\build\GitLink.props" Condition="Exists('..\packages\GitLink.3.1.0\build\GitLink.props')" />
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{F4A3EE59-8741-4301-BB03-9FB0D4EC17CB}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Blondin.LightCollections</RootNamespace>
-    <AssemblyName>Blondin.LightCollections</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyTitle>Blondin.LightCollections</AssemblyTitle>
+    <Product>Blondin.LightCollections</Product>
+    <Description>Provides a set of collections that reduce the memory usage and more especially the large object heap.</Description>
+    <Version>1.0.0.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Authors>frblondin</Authors>
+    <PackageId>Blondin.LightCollections</PackageId>
+    <PackageLicense>https://github.com/frblondin/LightCollections/blob/master/LICENSE</PackageLicense>
+    <PackageProjectUrl>https://github.com/frblondin/LightCollections</PackageProjectUrl>
+    <PackageTags>Microsoft Collections GAC LOH</PackageTags>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>full</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <PropertyGroup>
@@ -44,66 +23,20 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="StaticReflection, Version=2.0.4.0, Culture=neutral, PublicKeyToken=b6cf42357ca8f072, processorArchitecture=MSIL">
-      <HintPath>..\packages\ExpressionReflection.2.0.4\lib\net45\StaticReflection.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
+    <PackageReference Include="SourceLink.Copy.PdbFiles" Version="2.8.3" />
+    <PackageReference Include="SourceLink.Create.CommandLine" Version="2.8.3" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DictionaryFactory.cs" />
-    <Compile Include="Hacks\HashHelpersHack.cs" />
-    <Compile Include="Hacks\TupleHack.cs" />
-    <Compile Include="JaggedDictionary.Collections.cs" />
-    <Compile Include="JaggedDictionary.cs" />
-    <Compile Include="JaggedDictionary.DebugView.cs" />
-    <Compile Include="JaggedIndex.cs">
+    <Compile Update="JaggedIndex.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>JaggedIndex.tt</DependentUpon>
     </Compile>
-    <Compile Include="LightDictionary.cs" />
-    <Compile Include="LightDictionary.Enumerator.cs" />
-    <Compile Include="LightDictionary.KeyCollection.cs" />
-    <Compile Include="LightDictionary.ValueCollection.cs" />
-    <Compile Include="LightDictionary.Views.cs" />
-    <Compile Include="NoLohData.cs" />
-    <Compile Include="NoLohInfoProvider.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Hacks\ThrowHelperHack.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Blondin.LightCollections.nuspec">
-      <SubType>Designer</SubType>
-    </None>
     <None Include="JaggedIndex.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>JaggedIndex.cs</LastGenOutput>
     </None>
-    <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\GitLink.3.1.0\build\GitLink.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GitLink.3.1.0\build\GitLink.props'))" />
-    <Error Condition="!Exists('..\packages\GitLink.3.1.0\build\GitLink.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GitLink.3.1.0\build\GitLink.targets'))" />
-  </Target>
-  <Import Project="..\packages\GitLink.3.1.0\build\GitLink.targets" Condition="Exists('..\packages\GitLink.3.1.0\build\GitLink.targets')" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>

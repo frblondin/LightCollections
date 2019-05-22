@@ -206,7 +206,7 @@ namespace Blondin.LightCollections
 
         private static Expression ConvertEnum(Expression value, Type destType)
         {
-            var convertEnum = ((MethodInfo)StaticReflection.StaticReflection.GetMember(() => ConvertEnum<object, object>(null)).MemberInfo).GetGenericMethodDefinition();
+            var convertEnum = typeof(ThrowHelper).GetMethods(BindingFlags.Static | BindingFlags.NonPublic).Single(m => m.Name == nameof(ConvertEnum) && m.IsGenericMethod);
             return Expression.Call(convertEnum.MakeGenericMethod(value.Type, destType), value);
         }
         private static TDest ConvertEnum<TSource, TDest>(TSource value)
