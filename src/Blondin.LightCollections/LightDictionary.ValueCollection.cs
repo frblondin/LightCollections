@@ -37,7 +37,7 @@ namespace Blondin.LightCollections
 
                 if (index < 0 || index > array.Length)
                 {
-                    ThrowHelper.ThrowArgumentOutOfRangeException2(ExceptionArgument.index, ExceptionResource.ArgumentOutOfRange_NeedNonNegNum);
+                    ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.index, ExceptionResource.ArgumentOutOfRange_NeedNonNegNum);
                 }
 
                 if (array.Length - index < dictionary.Count)
@@ -119,7 +119,7 @@ namespace Blondin.LightCollections
 
                 if (index < 0 || index > array.Length)
                 {
-                    ThrowHelper.ThrowArgumentOutOfRangeException2(ExceptionArgument.index, ExceptionResource.ArgumentOutOfRange_NeedNonNegNum);
+                    ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.index, ExceptionResource.ArgumentOutOfRange_NeedNonNegNum);
                 }
 
                 if (array.Length - index < dictionary.Count)

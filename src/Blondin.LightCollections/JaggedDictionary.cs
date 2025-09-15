@@ -194,7 +194,7 @@ namespace Blondin.LightCollections
         /// comparer for the key type.</summary>
         public JaggedDictionary(int depth, IDictionaryFactory<TKey> dictionaryFactory = null)
         {
-            if (depth < 1) ThrowHelper.ThrowArgumentOutOfRangeException1(ExceptionArgument.capacity);
+            if (depth < 1) ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.capacity);
 
             this._dictionaryFactory = dictionaryFactory ?? DictionaryFactory<TKey>.Default;
             this.Depth = depth;
@@ -340,7 +340,7 @@ namespace Blondin.LightCollections
         public void CopyTo(KeyValuePair<IJaggedIndex<TKey>, TValue>[] array, int index)
         {
             if (array == null) ThrowHelper.ThrowArgumentNullException(ExceptionArgument.array);
-            if (index < 0 || index > array.Length) ThrowHelper.ThrowArgumentOutOfRangeException2(ExceptionArgument.index, ExceptionResource.ArgumentOutOfRange_NeedNonNegNum);
+            if (index < 0 || index > array.Length) ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.index, ExceptionResource.ArgumentOutOfRange_NeedNonNegNum);
             if (array.Length - index < Count) ThrowHelper.ThrowArgumentException(ExceptionResource.Arg_ArrayPlusOffTooSmall);
             int i = 0;
             foreach (var kvp in this)

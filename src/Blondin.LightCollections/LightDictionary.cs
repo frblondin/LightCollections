@@ -55,7 +55,7 @@ namespace Blondin.LightCollections
 
         public LightDictionary(int capacity, IEqualityComparer<TKey> comparer)
         {
-            if (capacity < 0) ThrowHelper.ThrowArgumentOutOfRangeException1(ExceptionArgument.capacity);
+            if (capacity < 0) ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.capacity);
             if (capacity > 0) Initialize(capacity);
             this.comparer = comparer ?? EqualityComparer<TKey>.Default;
 
@@ -269,7 +269,7 @@ namespace Blondin.LightCollections
 
             if (index < 0 || index > array.Length)
             {
-                ThrowHelper.ThrowArgumentOutOfRangeException2(ExceptionArgument.index, ExceptionResource.ArgumentOutOfRange_NeedNonNegNum);
+                ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.index, ExceptionResource.ArgumentOutOfRange_NeedNonNegNum);
             }
 
             if (array.Length - index < Count)
@@ -674,7 +674,7 @@ namespace Blondin.LightCollections
 
             if (index < 0 || index > array.Length)
             {
-                ThrowHelper.ThrowArgumentOutOfRangeException2(ExceptionArgument.index, ExceptionResource.ArgumentOutOfRange_NeedNonNegNum);
+                ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.index, ExceptionResource.ArgumentOutOfRange_NeedNonNegNum);
             }
 
             if (array.Length - index < Count)
