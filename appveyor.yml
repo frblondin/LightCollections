@@ -30,6 +30,6 @@ artifacts:
 deploy:
   provider: NuGet
   api_key:
-    secure: gxgbRUyy+x18DPZw8UkrP7XJL+8J1Uz9b4GmpL0XNmGs+AB48Kf3UEUEWujfz+5G
+    secure: vhIOT35nsiRQY1QLcx6mzjZWUbYBgmGOH27wW7OXKFiB8IIayAYwjMov1sy4bJTF
   artifact: /Blondin.LightCollections.*\.nupkg/
   skip_symbols: false
